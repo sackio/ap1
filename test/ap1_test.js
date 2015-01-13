@@ -3,6 +3,8 @@
 var Belt = require('jsbelt')
   , Optionall = require('optionall')
   , Path = require('path')
+  , OS = require('os')
+  , FSTK = require('fstk')
   , O = new Optionall({'__dirname': Path.resolve(module.filename + '/../..')
                      , 'file_priority': ['package.json', 'environment.json', 'config.json']})
   , Async = require('async')
@@ -175,6 +177,37 @@ exports['http'] = {
       }
     ], function(err){
       test.ok(!err);
+      log.profile(test_name);
+      return test.done();
+    });
+  }
+, 'http file uploads': function(test){
+    var test_name = 'http file uploads';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    var fd = {'media': [
+      FSTK._fs.createReadStream('/dev/urandom', {'start': 10, 'end': 609})
+    , FSTK._fs.createReadStream('/dev/urandom', {'start': 10, 'end': 609})
+    , FSTK._fs.createReadStream('/dev/urandom', {'start': 10, 'end': 609})
+    ]};
+
+    return Request({
+      'url': 'http://localhost:' + O.http.port + '/1/2/transaction.json'
+    , 'jar': gb.jar
+    , 'json': true
+    , 'method': 'POST'
+    , 'formData': fd
+    }, function(err, res, body){
+      test.ok(!err);
+      test.ok(res.statusCode === 200);
+      test.ok(_.keys(body.$files).length === 1);
+      test.ok(body.$files.media.length === 3);
+      test.ok(_.every(body.$files.media, function(f){
+        return f.fieldname === 'media' && f.size === 600 
+        && f.path.match(new RegExp('^' + Path.resolve(gb.api.settings.http.paths.uploads).replace(/\//g, '\\/')));
+      }));
+
       log.profile(test_name);
       return test.done();
     });
