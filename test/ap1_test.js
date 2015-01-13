@@ -15,7 +15,6 @@ var Belt = require('jsbelt')
   , IO = require('socket.io-client')
   , API = require('../lib/ap1.js');
 
-console.log(O.http);
 var gb = {}
   , log = new Winston.Logger()
 ;
@@ -23,7 +22,7 @@ var gb = {}
 log.add(Winston.transports.Console, {'level': 'debug', 'colorize': true, 'timestamp': false});
 gb.jar = Request.jar();
 
-exports['http'] = {
+exports['servers'] = {
   'setUp': function(done){
     return done();
   }
@@ -212,23 +211,33 @@ exports['http'] = {
       return test.done();
     });
   }
-};
-
-exports['websockets'] = {
-  'setUp': function(done){
-    return done();
-  }
-, 'create socket.io client': function(test){
-    var test_name = 'create socket.io client';
+, 'basic socket.io route': function(test){
+    var test_name = 'basic socket.io route';
     log.debug(test_name);
     log.profile(test_name);
 
+    gb.api.ws.addRoute('transaction', function(data){
+      return this.emit('transaction', _.omit(data, ['$request', '$response', '$server']));
+    });
+
     gb.sio = new IO('http://localhost:' + gb.api.settings.http.port);
-    gb.sio.on('connect', function(){
+    return gb.sio.on('connect', function(){
       test.ok(gb.sio);
 
-      log.profile(test_name);
-      return test.done();
+       gb.sio.on('transaction', function(data){
+        test.ok(data.$type === 'ws');
+        test.ok(data.$url.pathname === '/1/transaction');
+        test.ok(Belt.equal(data.$params, ['1']));
+        test.ok(Belt.equal(data.$query, {test: 'true'}));
+        test.ok(Belt.equal(data.$body, {hello: 'world', url: '/1/transaction?test=true'}));
+        test.ok(Belt.equal(data.$data, {test: 'true', hello: 'world', url: '/1/transaction?test=true'}));
+        test.ok(data.$event === 'transaction');
+
+        log.profile(test_name);
+        return test.done();
+      });
+
+      return gb.sio.emit('transaction', {'hello': 'world', 'url': '/1/transaction?test=true'});
     });
   }
 };

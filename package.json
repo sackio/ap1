@@ -58,6 +58,7 @@
   , "winston": "*"
   , "moment": "*"
   , "socket.io": "*"
+  , "session.socket.io": "*"
   , "rol": "*"
   , "pa1d": "*"
   , "locup": "*"
