@@ -213,3 +213,22 @@ exports['http'] = {
     });
   }
 };
+
+exports['websockets'] = {
+  'setUp': function(done){
+    return done();
+  }
+, 'create socket.io client': function(test){
+    var test_name = 'create socket.io client';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.sio = new IO('http://localhost:' + gb.api.settings.http.port);
+    gb.sio.on('connect', function(){
+      test.ok(gb.sio);
+
+      log.profile(test_name);
+      return test.done();
+    });
+  }
+};
