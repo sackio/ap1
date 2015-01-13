@@ -1,0 +1,22 @@
+{
+  "name": "ap1",
+  "dependencies": {
+    "underscore": "*"
+  , "jsbelt": "*"
+  , "moment": "*"
+  , "jquery": "*"
+  },
+  "devDependencies": {
+    "assert": "*",
+    "blanket": "*",
+    "async": "*"
+  },
+  "ignore": [
+    "test",
+    "example",
+    "lib",
+    "Gruntfile.js",
+    "package.json",
+    "grunt"
+  ]
+}

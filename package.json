@@ -34,6 +34,7 @@
     "grunt": "~0.4.5"
   , "yessir": "*"
   , "socket.io-client": "*"
+  , "mocha": "*"
   },
   "keywords": []
 , "dependencies": {
