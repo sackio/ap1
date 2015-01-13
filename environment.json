@@ -1,0 +1,64 @@
+{    
+  "env": {
+    "development": {
+      "aws": {
+       "region": "us-east-1"
+      }
+    , "redis": {
+        "host": "127.0.0.1"
+      , "port": "6379"
+      , "prefix": "dev.ap1.sess"
+      }
+    , "http": {
+        "session_key": "dev.ap1.sid"
+      , "port": 7000
+      , "express_settings": {
+          "view engine": "ejs"
+        , "trust proxy": true
+        }
+      , "paths": {
+          "data": "./assets/data"
+        , "uploads": "./assets/uploads"
+        , "public": "./assets/public"
+        , "views": "./assets/templates"
+        }
+      }
+    , "socket": {
+        "port": 8000
+      }
+    , "plugins": [
+        "./lib/plugins.js"
+      ]
+    },
+    "production": {
+      "aws": {
+       "region": "us-east-1"
+      }
+    , "redis": {
+        "host": "127.0.0.1"
+      , "port": "6379"
+      , "prefix": "ap1.sess"
+      }
+    , "http": {
+        "session_key": "ap1.sid"
+      , "port": 7000
+      , "express_settings": {
+          "view engine": "ejs"
+        , "trust proxy": true
+        }
+      , "paths": {
+          "data": "./assets/data"
+        , "uploads": "./assets/uploads"
+        , "public": "./assets/public"
+        , "views": "./assets/templates"
+        }
+      }
+    , "socket": {
+        "port": 8000
+      }
+    , "plugins": [
+        "./lib/plugins.js"
+      ]
+    }
+  }
+}
