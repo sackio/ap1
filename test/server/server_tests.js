@@ -108,4 +108,13 @@ suite('browser-based tests', function(){
     });
   });
 
+  test('regenerate session with http', function(done){
+    return $.post('/regenerate', function(data){
+      return $.getJSON('/session', function(data){
+        
+        return done();
+      });
+    });
+  });
+
 });

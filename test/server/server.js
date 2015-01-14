@@ -34,22 +34,29 @@ gb.api.http.addRoute(/\/.*\.json$/, function(o){
 
 //test routes
 gb.api.http.addRoute('/session', function(o){
-  return o.$response.status(200).json({'session': o.$session, 'id': o.$request.sessionID});
+  return o.$session.reload(function(){
+    return o.$response.status(200).json({'session': o.$request.session, 'id': o.$request.sessionID});
+  });
 });
 
 gb.api.ws.addRoute('session', function(o){
-  return this.emit('session', {'session': o.$session, 'id': o.$request.$sessionID});
+  var sock = this;
+  return gb.api.sessionsStore.get(o.$request.$sessionID, function(err, sess){
+    return sock.emit('session', {'session': sess, 'id': o.$request.$sessionID});
+  });
 });
 
 gb.api.http.addRoute('/set', function(o){
   _.each(o.$data, function(v, k){ return o.$session[k] = v; });
-  return o.$response.status(200).json({'session': o.$session, 'id': o.$request.sessionID});
+  return o.$session.save(function(){
+    return o.$response.status(200).json({'session': o.$request.session, 'id': o.$request.sessionID});
+  });
 }, {'method': 'post'});
 
 gb.api.ws.addRoute('set', function(o){
   _.each(o.$data, function(v, k){ return o.$session[k] = v; });
   var sock = this;
-  return gb.api.sessionsStore.set(o.$request.$sessionID, o.$session, function(err){
+  return gb.api.sessionsStore.set(o.$request.$sessionID, o.$session, function(err, sess){
     return sock.emit('set', {'session': o.$session, 'id': o.$request.$sessionID});
   });
 });

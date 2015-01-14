@@ -222,11 +222,11 @@ exports['servers'] = {
       return this.emit('transaction', _.omit(data, ['$request', '$response', '$server']));
     });
 
-    gb.sio = new IO('http://localhost:' + gb.api.settings.http.port);
-    return gb.sio.on('connect', function(){
-      test.ok(gb.sio);
+    gb.sib = new IO('http://localhost:' + gb.api.settings.http.port);
+    return gb.sib.once('connect', function(){
+      test.ok(gb.sib);
 
-       gb.sio.on('transaction', function(data){
+       gb.sib.once('transaction', function(data){
         test.ok(data.$type === 'ws');
         test.ok(data.$url.pathname === '/1/transaction');
         test.ok(Belt.equal(data.$params, ['1']));
@@ -236,11 +236,13 @@ exports['servers'] = {
         test.ok(data.$event === 'transaction');
         test.ok(Belt.equal(data.$session, undefined));
 
+        gb.sib.disconnect();
+
         log.profile(test_name);
         return test.done();
       });
 
-      return gb.sio.emit('transaction', {'hello': 'world', 'url': '/1/transaction?test=true'});
+      return gb.sib.emit('transaction', {'hello': 'world', 'url': '/1/transaction?test=true'});
     });
   }*/
 , 'sessioned socket.io route': function(test){
@@ -254,7 +256,9 @@ exports['servers'] = {
 
     gb.api.ws.addRoute('set-session-transaction', function(data){
       data.$session.fab = 'baz';
-      return this.emit('set-session-transaction', _.omit(data, ['$request', '$response', '$server']));
+      return gb.api.sessionsStore.set(data.$request.$sessionID, data.$session, function(err, sess){
+        return data.$request.emit('set-session-transaction', _.omit(data, ['$request', '$response', '$server']));
+      });
     });
 
     gb.sio = new IO('http://localhost:' + gb.api.settings.http.port);
