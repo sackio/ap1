@@ -111,10 +111,28 @@ suite('browser-based tests', function(){
   test('regenerate session with http', function(done){
     return $.post('/regenerate', function(data){
       return $.getJSON('/session', function(data){
-        
+        assert.ok(!data.session.fab);
+        assert.ok(!data.session.foo);
+        assert.ok(data.id !== gb.http_session.id);
+        gb.http_session = data;
         return done();
       });
     });
   });
 
+  test('ensure new session with socket.io', function(done){
+    gb.sock.disconnect();
+    gb.sock.connect();
+
+    this.timeout(10000);
+
+    gb.sock.once('session', function(data){
+      assert.ok(data.session.cookie);
+      assert.ok(data.id === gb.http_session.id);
+
+      return done();
+    });
+
+    return gb.sock.emit('session');
+  });
 });

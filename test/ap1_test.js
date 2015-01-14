@@ -4,6 +4,7 @@ var Belt = require('jsbelt')
   , Optionall = require('optionall')
   , Path = require('path')
   , OS = require('os')
+  , Net = require('net')
   , FSTK = require('fstk')
   , O = new Optionall({'__dirname': Path.resolve(module.filename + '/../..')
                      , 'file_priority': ['package.json', 'environment.json', 'config.json']})
@@ -213,40 +214,8 @@ exports['servers'] = {
       return test.done();
     });
   }
-/*, 'basic socket.io route': function(test){
-    var test_name = 'basic socket.io route';
-    log.debug(test_name);
-    log.profile(test_name);
-
-    gb.api.ws.addRoute('transaction', function(data){
-      return this.emit('transaction', _.omit(data, ['$request', '$response', '$server']));
-    });
-
-    gb.sib = new IO('http://localhost:' + gb.api.settings.http.port);
-    return gb.sib.once('connect', function(){
-      test.ok(gb.sib);
-
-       gb.sib.once('transaction', function(data){
-        test.ok(data.$type === 'ws');
-        test.ok(data.$url.pathname === '/1/transaction');
-        test.ok(Belt.equal(data.$params, ['1']));
-        test.ok(Belt.equal(data.$query, {test: 'true'}));
-        test.ok(Belt.equal(data.$body, {hello: 'world', url: '/1/transaction?test=true'}));
-        test.ok(Belt.equal(data.$data, {test: 'true', hello: 'world', url: '/1/transaction?test=true'}));
-        test.ok(data.$event === 'transaction');
-        test.ok(Belt.equal(data.$session, undefined));
-
-        gb.sib.disconnect();
-
-        log.profile(test_name);
-        return test.done();
-      });
-
-      return gb.sib.emit('transaction', {'hello': 'world', 'url': '/1/transaction?test=true'});
-    });
-  }*/
-, 'sessioned socket.io route': function(test){
-    var test_name = 'sessioned socket.io route';
+, 'server-side socket.io route': function(test){
+    var test_name = 'server-side socket.io route';
     log.debug(test_name);
     log.profile(test_name);
 
@@ -286,6 +255,146 @@ exports['servers'] = {
       });
 
       return gb.sio.emit('set-session-transaction', {'hello': 'world', 'url': '/1/transaction?test=true', 'sid': gb.sid});
+    });
+  }
+, 'basic socket route': function(test){
+    var test_name = 'basic socket route';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.socket.addRoute(function(data){
+      return data.event === 'transaction';
+    }, function(data){
+      return this.write(Belt.stringify(_.omit(data, ['$request', '$response', '$server'])));
+    });
+
+    return gb.sock = Net.createConnection({'port': gb.api.settings.socket.port}, function(){
+      test.ok(gb.sock);
+
+      gb.sock.once('data', function(d){
+        var data = Belt.parse(d);
+
+        test.ok(data.$type === 'socket');
+        test.ok(data.$url.pathname === '/1/transaction');
+        test.ok(Belt.equal(data.$params, ['1']));
+        test.ok(Belt.equal(data.$query, {test: 'true'}));
+        test.ok(Belt.equal(data.$body, {event: 'transaction', hello: 'world', url: '/1/transaction?test=true'}));
+        test.ok(Belt.equal(data.$data, {test: 'true', hello: 'world', url: '/1/transaction?test=true', event: 'transaction'}));
+        test.ok(data.$event === 'transaction');
+
+        log.profile(test_name);
+        return test.done();
+      });
+
+      return gb.sock.write(Belt.stringify({'event': 'transaction', 'hello': 'world', 'url': '/1/transaction?test=true'}));
+    });
+  }
+, 'session-based socket route setter': function(test){
+    var test_name = 'session-based socket route setter';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.socket.addRoute(function(data){
+      return data.event === 'session';
+    }, function(data){
+      _.each(data.$body, function(v, k){ return data.$session[k] = v; });
+
+      return gb.api.sessionsStore.set(data.$request.$sessionID, data.$session, function(err){
+        return data.$request.write(Belt.stringify(_.omit(data, ['$request', '$response', '$server'])));
+      });
+    });
+
+    return gb.sock = Net.createConnection({'port': gb.api.settings.socket.port}, function(){
+      test.ok(gb.sock);
+
+      gb.sock.once('data', function(d){
+        var data = Belt.parse(d);
+
+        test.ok(data.$type === 'socket');
+        test.ok(data.$url.pathname === '/1/transaction');
+        test.ok(Belt.equal(data.$params, ['1']));
+        test.ok(Belt.equal(data.$query, {test: 'true'}));
+        test.ok(Belt.equal(data.$body, {sid: gb.sid, event: 'session', hello: 'world', url: '/1/transaction?test=true'}));
+        test.ok(Belt.equal(data.$data, {sid: gb.sid, test: 'true', hello: 'world', url: '/1/transaction?test=true', event: 'session'}));
+        test.ok(data.$event === 'session');
+
+        test.ok(data.$session.visited === 'true');
+        test.ok(data.$session.foo === 'bar');
+        test.ok(data.$session.fab === 'baz');
+
+        test.ok(_.every(data.$body, function(v, k){
+          return Belt.equal(data.$session[k], v);
+        }));
+
+        log.profile(test_name);
+        return test.done();
+      });
+
+      return gb.sock.write(Belt.stringify({'sid': gb.sid, 'event': 'session', 'hello': 'world', 'url': '/1/transaction?test=true'}));
+    });
+  }
+, 'get session from socket': function(test){
+    var test_name = 'get session from socket';
+    log.profile(test_name);
+
+    gb.api.socket.addRoute(function(data){
+      return data.event === 'get-session';
+    }, function(data){
+      return data.$request.write(Belt.stringify(data.$session));
+    });
+
+    return gb.sock = Net.createConnection({'port': gb.api.settings.socket.port}, function(){
+      test.ok(gb.sock);
+
+      gb.sock.once('data', function(d){
+        var data = Belt.parse(d);
+
+        test.ok(data.cookie.path === '/');
+        test.ok(data.visited === 'true');
+        test.ok(data.foo === 'bar');
+        test.ok(data.fab === 'baz');
+        test.ok(data.sid === gb.sid);
+        test.ok(data.event === 'session')
+        test.ok(data.hello === 'world');
+        test.ok(data.url === '/1/transaction?test=true');
+
+        log.profile(test_name);
+        return test.done();
+      });
+
+      return gb.sock.write(Belt.stringify({'sid': gb.sid, 'event': 'get-session'}));
+    });
+  }
+, 'ensure http session data has been updated': function(test){
+    var test_name = 'ensure http session data has been updated';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    return Async.waterfall([
+      function(cb){
+        return Request({
+          'url': 'http://localhost:' + O.http.port + '/1/2/transaction.json'
+        , 'jar': gb.jar
+        , 'json': true
+        , 'method': 'POST'
+        }, function(err, res, body){
+
+          test.ok(body.$session.cookie.path === '/');
+          test.ok(body.$session.visited === 'true');
+          test.ok(body.$session.foo === 'bar');
+          test.ok(body.$session.fab === 'baz');
+          test.ok(body.$session.sid === gb.sid);
+          test.ok(body.$session.event === 'session')
+          test.ok(body.$session.hello === 'world');
+          test.ok(body.$session.url === '/1/transaction?test=true');
+
+          return cb();
+        });
+      }
+    ], function(err){
+      test.ok(!err);
+      log.profile(test_name);
+      return test.done();
     });
   }
 };
