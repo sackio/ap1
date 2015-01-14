@@ -16,6 +16,7 @@
 
   <script src="/bower_components/underscore/underscore-min.js"></script>
   <script src="/bower_components/jsbelt/lib/belt.js"></script>
+  <script src="/bower_components/async/lib/async.js"></script>
   <script src="/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -24,9 +25,7 @@
 
   </div>
   <div id="mocha"></div>
-  <script>
-    //tests
-  </script>
+  <script src="/server_tests.js"></script>
   <script>
     if (navigator.userAgent.indexOf('PhantomJS') < 0) {
       mocha.run();

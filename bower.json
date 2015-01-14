@@ -5,6 +5,7 @@
   , "jsbelt": "*"
   , "moment": "*"
   , "jquery": "*"
+  , "async": "*"
   },
   "devDependencies": {
     "assert": "*",
