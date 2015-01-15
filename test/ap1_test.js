@@ -437,4 +437,69 @@ exports['servers'] = {
       return test.ok(!err);
     });
   }
+, 'jsonRespond routes': function(test){
+    var test_name = 'jsonRespond routes';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.socket.addRoute(function(data){
+      return data.event === 'json';
+    }, function(data){
+      return gb.api.plugins.jsonRespond(null, _.omit(data, ['$request', '$response', '$server']), data);
+    });
+    gb.api.email.addRoute(function(data){
+      return data.event === 'json';
+    }, function(data){
+      return gb.api.plugins.jsonRespond(null, _.omit(data, ['$request', '$response', '$server']), data);
+    });
+    gb.api.ws.addRoute('json', function(data){
+      return gb.api.plugins.jsonRespond(null, _.omit(data, ['$request', '$response', '$server']), data);
+    });
+    gb.api.http.addRoute('/json', function(data){
+      return gb.api.plugins.jsonRespond(null, _.omit(data, ['$request', '$response', '$server']), data);
+    });
+
+    return Async.waterfall([
+      function(cb){
+        return Request({
+          'url': 'http://localhost:' + O.http.port + '/json'
+        , 'jar': gb.jar
+        , 'json': true
+        }, function(err, res, body){
+          test.ok(!err);
+          test.ok(res.statusCode === 200);
+          test.ok(body.data.$session.hello === 'world')
+          test.ok(body.data.$url.pathname === '/json');
+          return cb();
+        });
+      }
+    , function(cb){
+        return gb.sock = Net.createConnection({'port': gb.api.settings.socket.port}, function(){
+          test.ok(gb.sock);
+
+          gb.sock.once('data', function(d){
+            var body = Belt.parse(d);
+
+            test.ok(body.data.$session.hello === 'world')
+            return cb()
+          });
+
+          return gb.sock.write(Belt.stringify({'sid': gb.sid, 'event': 'json'}));
+        });
+      }
+    , function(cb){
+        return gb.api.email.outgoing.send_email({
+          'to': gb.api.settings.email.to_email
+        , 'from': gb.api.settings.email.from_email
+        , 'subject': '<event>json</event>' + Belt.uuid()
+        , 'html': ''
+        , 'text': ''
+        }, Belt.cw(cb, 0));
+      }
+    ], function(err){
+      test.ok(!err);
+      log.profile(test_name);
+      return test.done();
+    });
+  }
 };

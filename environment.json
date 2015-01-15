@@ -26,9 +26,6 @@
     , "socket": {
         "port": 8000
       }
-    , "plugins": [
-        "./lib/plugins.js"
-      ]
     },
     "production": {
       "aws": {
@@ -56,9 +53,6 @@
     , "socket": {
         "port": 8000
       }
-    , "plugins": [
-        "./lib/plugins.js"
-      ]
     }
   }
 }
