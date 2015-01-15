@@ -397,4 +397,44 @@ exports['servers'] = {
       return test.done();
     });
   }
+, 'basic email route': function(test){
+    var test_name = 'basic email route';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.email.addRoute(function(email){
+      return email.event === 'transaction';
+    }, function(data){
+
+      test.ok(data.$type === 'email');
+      test.ok(data.$url.pathname === '/1/transaction');
+      test.ok(Belt.equal(data.$params, ['1']));
+      test.ok(Belt.equal(data.$query, {test: 'true'}));
+      test.ok(data.$body.html === '<url>/1/transaction?test=true</url>');
+      test.ok(data.$body.text === '<sid>' + gb.sid + '</sid>');
+      test.ok(data.$event === 'transaction');
+
+      test.ok(data.$session.cookie.path === '/');
+      test.ok(data.$session.visited === 'true');
+      test.ok(data.$session.foo === 'bar');
+      test.ok(data.$session.fab === 'baz');
+      test.ok(data.$session.sid === gb.sid);
+      test.ok(data.$session.event === 'session')
+      test.ok(data.$session.hello === 'world');
+      test.ok(data.$session.url === '/1/transaction?test=true');
+
+      log.profile(test_name);
+      return test.done();
+    });
+
+    return gb.api.email.outgoing.send_email({
+      'to':  gb.api.settings.email.to_email
+    , 'from': gb.api.settings.email.from_email
+    , 'subject': Belt.uuid() + '<event>transaction</event>'
+    , 'html': '<url>/1/transaction?test=true</url>'
+    , 'text': '<sid>' + gb.sid + '</sid>'
+    }, function(err){
+      return test.ok(!err);
+    });
+  }
 };
