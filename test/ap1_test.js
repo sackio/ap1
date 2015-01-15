@@ -496,6 +496,9 @@ exports['servers'] = {
         , 'text': ''
         }, Belt.cw(cb, 0));
       }
+    , function(cb){
+        return setTimeout(function(){ return cb(); }, 10000);
+      }
     ], function(err){
       test.ok(!err);
       log.profile(test_name);
