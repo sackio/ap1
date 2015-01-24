@@ -43,7 +43,7 @@ suite('browser-based tests', function(){
   });
 
   test('connect to socket.io and ensure session', function(done){
-    gb.sock = io.connect('/');
+    gb.sock = io.connect(document.location.protocol === 'https:' ? 'https://localhost:8000/' : 'http://localhost:7000/');
 
     gb.sock.once('session', function(data){
       gb.sock_session = data;

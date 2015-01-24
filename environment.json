@@ -24,7 +24,7 @@
         }
       }
     , "socket": {
-        "port": 8000
+        "port": 8884
       }
     },
     "production": {
@@ -51,7 +51,34 @@
         }
       }
     , "socket": {
-        "port": 8000
+        "port": 8884
+      }
+    }
+  , "secure": {
+      "aws": {
+       "region": "us-east-1"
+      }
+    , "redis": {
+        "host": "127.0.0.1"
+      , "port": "6379"
+      , "prefix": "ssl.ap1.sess"
+      }
+    , "http": {
+        "session_key": "ssl.ap1.sid"
+      , "port": 8000
+      , "express_settings": {
+          "view engine": "ejs"
+        , "trust proxy": true
+        }
+      , "paths": {
+          "data": "./assets/data"
+        , "uploads": "./assets/uploads"
+        , "public": "./assets/public"
+        , "views": "./assets/templates"
+        }
+      }
+    , "socket": {
+        "port": 9000
       }
     }
   }
