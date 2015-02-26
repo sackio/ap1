@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.NODE_ENV = 'secure';
+
 var Belt = require('jsbelt')
   , Optionall = require('optionall')
   , Path = require('path')
@@ -8,6 +10,7 @@ var Belt = require('jsbelt')
   , FSTK = require('fstk')
   , O = new Optionall({'__dirname': Path.resolve(module.filename + '/../..')
                      , 'environment': 'secure'
+                     , 'NODE_ENV': 'secure'
                      , 'file_priority': ['package.json', 'environment.json', 'config.json']})
   , Async = require('async')
   , _ = require('underscore')
