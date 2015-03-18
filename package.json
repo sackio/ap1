@@ -1,7 +1,7 @@
 {
   "name": "ap1",
   "description": "all-in-one frontend server",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "homepage": "https://github.com/sackio/ap1",
   "author": {
     "name": "Ben Sack",
