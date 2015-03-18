@@ -406,4 +406,140 @@ exports['servers'] = {
       return test.done();
     });
   }
+, 'connect to ws server': function(test){
+    var test_name = 'connect to ws server';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.ws = new WS('wss://localhost:' + gb.api.settings.ws.port);
+
+    return gb.ws.on('open', function(){
+      test.ok(true);
+      log.profile(test_name);
+      return test.done();
+    });
+  }
+, 'basic ws route': function(test){
+    var test_name = 'basic ws route';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.ws.addRoute(function(data){
+      return data.event === 'transaction';
+    }, function(data){
+      return this.send(Belt.stringify(_.omit(data, ['$request', '$response', '$server'])));
+    });
+
+    gb.ws.once('message', function(d){
+      var data = Belt.parse(d);
+
+      test.ok(data.$type === 'ws');
+      test.ok(data.$url.pathname === '/1/transaction');
+      test.ok(Belt.equal(data.$params, ['1']));
+      test.ok(Belt.equal(data.$query, {test: 'true'}));
+      test.ok(Belt.equal(data.$body, {event: 'transaction', hello: 'world', url: '/1/transaction?test=true'}));
+      test.ok(Belt.equal(data.$data, {test: 'true', hello: 'world', url: '/1/transaction?test=true', event: 'transaction'}));
+      test.ok(data.$event === 'transaction');
+
+      log.profile(test_name);
+      return test.done();
+    });
+
+    return gb.ws.send(Belt.stringify({'event': 'transaction', 'hello': 'world', 'url': '/1/transaction?test=true'}));
+  }
+, 'session-based ws route setter': function(test){
+    var test_name = 'session-based ws route setter';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    gb.api.ws.addRoute(function(data){
+      return data.event === 'session';
+    }, function(data){
+      _.each(data.$body, function(v, k){ return data.$session[k] = v; });
+
+      return gb.api.sessionsStore.set(data.$request.$sessionID, data.$session, function(err){
+        return data.$request.send(Belt.stringify(_.omit(data, ['$request', '$response', '$server'])));
+      });
+    });
+
+    gb.ws.once('message', function(d){
+      var data = Belt.parse(d);
+      test.ok(data.$type === 'ws');
+      test.ok(data.$url.pathname === '/1/transaction');
+      test.ok(Belt.equal(data.$params, ['1']));
+      test.ok(Belt.equal(data.$query, {test: 'true'}));
+      test.ok(Belt.equal(data.$body, {sid: gb.sid, event: 'session', hello: 'world', url: '/1/transaction?test=true'}));
+      test.ok(Belt.equal(data.$data, {sid: gb.sid, test: 'true', hello: 'world', url: '/1/transaction?test=true', event: 'session'}));
+      test.ok(data.$event === 'session');
+      test.ok(data.$session.visited === 'true');
+      test.ok(data.$session.foo === 'bar');
+      test.ok(data.$session.fab === 'baz');
+      test.ok(_.every(data.$body, function(v, k){
+        return Belt.equal(data.$session[k], v);
+      }));
+
+      log.profile(test_name);
+      return test.done();
+    });
+
+    return gb.ws.send(Belt.stringify({'sid': gb.sid, 'event': 'session', 'hello': 'world', 'url': '/1/transaction?test=true'}));
+  }
+, 'get session from ws': function(test){
+    var test_name = 'get session from ws';
+    log.profile(test_name);
+
+    gb.api.ws.addRoute(function(data){
+      return data.event === 'get-session';
+    }, function(data){
+      return data.$request.send(Belt.stringify(data.$session));
+    });
+
+    gb.ws.once('message', function(d){
+      var data = Belt.parse(d);
+      test.ok(data.cookie.path === '/');
+      test.ok(data.visited === 'true');
+      test.ok(data.foo === 'bar');
+      test.ok(data.fab === 'baz');
+      test.ok(data.sid === gb.sid);
+      test.ok(data.event === 'session')
+      test.ok(data.hello === 'world');
+      test.ok(data.url === '/1/transaction?test=true');
+      log.profile(test_name);
+      return test.done();
+    });
+
+    return gb.ws.send(Belt.stringify({'sid': gb.sid, 'event': 'get-session'}));
+  }
+, 'ensure http session data has been updated - ws': function(test){
+    var test_name = 'ensure http session data has been updated - ws';
+    log.debug(test_name);
+    log.profile(test_name);
+
+    return Async.waterfall([
+      function(cb){
+        return Request({
+          'url': 'https://localhost:' + O.http.port + '/1/2/transaction.json'
+        , 'jar': gb.jar
+        , 'json': true
+        , 'method': 'POST'
+        }, function(err, res, body){
+
+          test.ok(body.$session.cookie.path === '/');
+          test.ok(body.$session.visited === 'true');
+          test.ok(body.$session.foo === 'bar');
+          test.ok(body.$session.fab === 'baz');
+          test.ok(body.$session.sid === gb.sid);
+          test.ok(body.$session.event === 'session')
+          test.ok(body.$session.hello === 'world');
+          test.ok(body.$session.url === '/1/transaction?test=true');
+
+          return cb();
+        });
+      }
+    ], function(err){
+      test.ok(!err);
+      log.profile(test_name);
+      return test.done();
+    });
+  }
 };
