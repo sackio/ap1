@@ -28,10 +28,7 @@ log.add(Winston.transports.Console, {'level': 'debug', 'colorize': true, 'timest
 gb.jar = Request.jar();
 
 exports['servers'] = {
-  'setUp': function(done){
-    return done();
-  }
-, 'server startup': function(test){
+  'server startup': function(test){
     var test_name = 'server startup';
     log.debug(test_name);
     log.profile(test_name);
@@ -230,11 +227,11 @@ exports['servers'] = {
     log.debug(test_name);
     log.profile(test_name);
 
-    gb.api.ws.addRoute('session-transaction', function(data){
+    gb.api.io.addRoute('session-transaction', function(data){
       return this.emit('session-transaction', _.omit(data, ['$request', '$response', '$server']));
     });
 
-    gb.api.ws.addRoute('set-session-transaction', function(data){
+    gb.api.io.addRoute('set-session-transaction', function(data){
       data.$session.fab = 'baz';
       return gb.api.sessionsStore.set(data.$request.$sessionID, data.$session, function(err, sess){
         return data.$request.emit('set-session-transaction', _.omit(data, ['$request', '$response', '$server']));
@@ -250,7 +247,7 @@ exports['servers'] = {
       });
 
       gb.sio.on('session-transaction', function(data){
-        test.ok(data.$type === 'ws');
+        test.ok(data.$type === 'io');
         test.ok(data.$url.pathname === '/1/transaction');
         test.ok(Belt.equal(data.$params, ['1']));
         test.ok(Belt.equal(data.$query, {test: 'true'}));

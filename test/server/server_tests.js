@@ -16,9 +16,6 @@ suite('browser-based tests', function(){
         return $.getJSON('/package.json', Belt.cs(cb, gb, 'pkg', 0))
       }
     , function(cb){
-        return $.getJSON('/environment.json', Belt.cs(cb, gb, 'env', 0))
-      }
-    , function(cb){
         return $.getJSON('/config.json', Belt.cs(cb, gb, 'cfg', 0))
       }
     , function(cb){

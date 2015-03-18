@@ -39,7 +39,7 @@ gb.api.http.addRoute('/session', function(o){
   });
 });
 
-gb.api.ws.addRoute('session', function(o){
+gb.api.io.addRoute('session', function(o){
   var sock = this;
   return gb.api.sessionsStore.get(o.$request.$sessionID, function(err, sess){
     return sock.emit('session', {'session': sess, 'id': o.$request.$sessionID});
@@ -53,7 +53,7 @@ gb.api.http.addRoute('/set', function(o){
   });
 }, {'method': 'post'});
 
-gb.api.ws.addRoute('set', function(o){
+gb.api.io.addRoute('set', function(o){
   _.each(o.$data, function(v, k){ return o.$session[k] = v; });
   var sock = this;
   return gb.api.sessionsStore.set(o.$request.$sessionID, o.$session, function(err, sess){
