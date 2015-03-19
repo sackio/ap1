@@ -395,7 +395,7 @@ exports['servers'] = {
       return test.done();
     });
   }
-/*, 'connect to ws server': function(test){
+, 'connect to ws server': function(test){
     var test_name = 'connect to ws server';
     log.debug(test_name);
     log.profile(test_name);
@@ -638,5 +638,5 @@ exports['servers'] = {
       log.profile(test_name);
       return test.done();
     });
-  }*/
+  }
 };
