@@ -1,7 +1,7 @@
 {
   "name": "ap1",
   "description": "all-in-one frontend server",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "homepage": "https://github.com/sackio/ap1",
   "author": {
     "name": "Ben Sack",
@@ -31,34 +31,40 @@
     "grunt-contrib-jshint": "~0.6.4",
     "grunt-contrib-nodeunit": "~0.2.0",
     "grunt-contrib-watch": "~0.5.3",
-    "grunt": "~0.4.5"
-  , "yessir": "*"
-  , "socket.io-client": "*"
-  , "mocha": "*"
-  , "request": "*"
+    "grunt": "~0.4.5",
+    "yessir": "*",
+    "socket.io-client": "*",
+    "mocha": "*",
+    "request": "*"
   },
-  "keywords": []
-, "dependencies": {
-    "async": "*"
-  , "underscore": "*"
-  , "jsbelt": "*"
-  , "optionall": "*"
-  , "fstk": "*"
-  , "express": "4.*"
-  , "connect": "3.*"
-  , "express-session": "*"
-  , "serve-favicon": "*"
-  , "morgan": "*"
-  , "multer": "*"
-  , "body-parser": "*"
-  , "cookie": "*"
-  , "cookie-parser": "*"
-  , "errorhandler": "*"
-  , "connect-redis": "*"
-  , "ejs": "*"
-  , "maild": "*"
-  , "winston": "*"
-  , "socket.io": "*"
-  , "ws": "*"
-  }
+  "keywords": [],
+  "dependencies": {
+    "async": "*",
+    "underscore": "*",
+    "jsbelt": "*",
+    "optionall": "*",
+    "fstk": "*",
+    "express": "4.*",
+    "connect": "3.*",
+    "express-session": "*",
+    "serve-favicon": "*",
+    "morgan": "*",
+    "multer": "0.*",
+    "body-parser": "*",
+    "cookie": "*",
+    "cookie-parser": "*",
+    "errorhandler": "*",
+    "connect-redis": "*",
+    "ejs": "*",
+    "maild": "*",
+    "winston": "*",
+    "socket.io": "*",
+    "ws": "*"
+  },
+  "readme": "# ap1\n\nAp1 is an all-in-one set of frontend server, a kitchen sink switchboard of servers for receiving requests and issuing responses.\n\nAn instance includes an Express HTTP server, Socket.io websocket server, standard socket server, and incoming/outgoing email server, with modularity for adding other server types and protocols.\n\nIncoming requests are received on a server, and normalized into an options object, including the following:\n\n```javascript\n{\n  '$session': {} //object including stateful information about the session associated with the request/response\n, '$request': {} //object including request data / socket\n, '$response': {} //object for responding to request / socket\n, '$server': {} //server that originated the request\n, '$data': {} //all data from the transaction\n, '$url': {} //parsed information on the url of the request\n}\n```\n\nPlugins can include a variety of go-to methods for performing different types of message transactions (i.e. email confirmations, payments, location lookups, file uploads).\n\n## Getting Started\nInstall the module with: `npm install ap1`\n\n```javascript\nvar API = require('ap1');\n```\n\n## License\nCopyright (c) 2015 Ben Sack\nLicensed under the MIT license.\n",
+  "readmeFilename": "README.md",
+  "_id": "ap1@0.2.4",
+  "_shasum": "0e2eb580ecf382268bd64707179fd022dc5c0187",
+  "_resolved": "git://github.com/sackio/ap1.git#5af40ca5eb76c30fa2dd52f5d15c91bbbe9e560a",
+  "_from": "git://github.com/sackio/ap1.git#master"
 }
