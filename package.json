@@ -56,7 +56,6 @@
     "errorhandler": "*",
     "connect-redis": "*",
     "ejs": "*",
-    "maild": "*",
     "winston": "*",
     "socket.io": "*",
     "ws": "*"
